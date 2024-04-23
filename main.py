@@ -114,8 +114,12 @@ def process_with_varying_k(noisy_image, noise_type, original_image):
         
         psnr_f1 = psnr(denoised_f1, original_image)
         psnr_f2 = psnr(denoised_f2, original_image)
+        
+        logger.info(f"K = {K}: psnr_f1 = {psnr_f1}, psnr_f2 = {psnr_f2}")
+
         psnr_values_f1.append(psnr_f1)
         psnr_values_f2.append(psnr_f2)
+
     
     # Plotting the PSNR values
     plt.figure()
@@ -150,6 +154,9 @@ def process_with_varying_delt(noisy_image, noise_type, original_image):
 
         psnr_f1 = psnr(denoised_f1, original_image)
         psnr_f2 = psnr(denoised_f2, original_image)
+
+        logger.info(f"del_t = {del_t}: psnr_f1 = {psnr_f1}, psnr_f2 = {psnr_f2}")
+
         psnr_values_f1.append(psnr_f1)
         psnr_values_f2.append(psnr_f2)
     
@@ -185,6 +192,9 @@ def process_with_varying_steps(noisy_image, noise_type, original_image):
         
         psnr_f1 = psnr(original_image, denoised_f1)
         psnr_f2 = psnr(original_image, denoised_f2)
+
+        logger.info(f"steps = {steps}: psnr_f1 = {psnr_f1}, psnr_f2 = {psnr_f2}")
+
         psnr_values_f1.append(psnr_f1)
         psnr_values_f2.append(psnr_f2)
     
@@ -248,8 +258,6 @@ def generate_noised_images_if_absent(original_image_path, noise_funcs, noise_lab
                 if contrast == 'normal':
                     noised_image = func(original_image.copy())
                 else:
-                    # Assuming create_contrasted_noised_images is a function that takes an image and a contrast label
-                    # and returns a noised image with the specified contrast level
                     noised_image = create_contrasted_noised_images(original_image, contrast, func)
                 save_image(noised_image, f'noised/{contrast}', f'{label}.png')
 
@@ -371,11 +379,11 @@ if __name__ == '__main__':
     noise_labels = ['salt_pepper_noise', 'gaussian_noise']
     contrast_levels = ['high_contrast', 'low_contrast', 'normal']
 
-    # create_directory_structure()
-    # generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
+    create_directory_structure()
+    generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
 
-    # main()
-    # main_contrast()
-    # main_varying_k()
-    # main_varing_delt()
-    # main_varying_steps()
+    main()
+    main_contrast()
+    main_varying_k()
+    main_varing_delt()
+    main_varying_steps()

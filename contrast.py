@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 from noise import add_salt_pepper_noise, add_gaussian_noise
 
-# def adjust_contrast(image, factor):
-#     return np.clip((image - 128) * factor + 128, 0, 255).astype(np.uint8)
 
 def adjust_contrast(image, factor):
     """ Adjusts the contrast of an image by scaling the intensity of the pixels.
@@ -18,15 +16,3 @@ def create_contrasted_noised_images(image):
     low_contrast = adjust_contrast(image, 0.5)  # Reduced contrast
 
     return high_contrast, low_contrast
-
-    # high_sp_noise = add_salt_pepper_noise(high_contrast)
-    # low_sp_noise = add_salt_pepper_noise(low_contrast)
-    # high_gauss_noise = add_gaussian_noise(high_contrast)
-    # low_gauss_noise = add_gaussian_noise(low_contrast)
-
-    # cv2.imwrite('noised/high_contrast/high_sp.png', high_sp_noise)
-    # cv2.imwrite('noised/low_contrast/low_sp.png', low_sp_noise)
-    # cv2.imwrite('noised/high_contrast/high_gauss.png', high_gauss_noise)
-    # cv2.imwrite('noised/low_contrast/low_gauss.png', low_gauss_noise)
-
-    # return high_sp_noise, low_sp_noise, high_gauss_noise, low_gauss_noise
