@@ -12,18 +12,6 @@ def adjust_contrast(image, factor):
     mean = np.mean(image)
     return np.clip((image - mean) * factor + mean, 0, 255).astype(np.uint8)
 
-
-# def create_contrasted_noised_images(image_path):
-#     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-#     high_contrast = adjust_contrast(image, 2.0)  # Increase contrast
-#     low_contrast = adjust_contrast(image, 0.5)  # Decrease contrast
-#     high_sp_noise = add_salt_pepper_noise(high_contrast)
-#     low_sp_noise = add_salt_pepper_noise(low_contrast)
-#     high_gauss_noise = add_gaussian_noise(high_contrast)
-#     low_gauss_noise = add_gaussian_noise(low_contrast)
-#     return high_sp_noise, low_sp_noise, high_gauss_noise, low_gauss_noise
-
-
 def create_contrasted_noised_images(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     high_contrast = adjust_contrast(image, 1.5)  # Enhanced contrast

@@ -27,7 +27,6 @@ def optimize_pmf_parameters(image, K_values, step_counts, func):
                 best_K, best_steps = K, steps
     return best_K, best_steps, best_psnr, best_mse
 
-
 def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
     plt.figure(figsize=(15, 10))
     images = [original] + noisy + denoised
@@ -48,37 +47,6 @@ def process_image(original_image, noise_funcs, denoise_funcs):
     for noisy in noisy_images:
         denoised_images.extend([func(noisy.copy()) for func in denoise_funcs])
     return noisy_images, denoised_images
-
-
-# def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
-#     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-#     if original_image is None:
-#         raise ValueError("Image not found or the path is incorrect")
-#     if len(original_image.shape) != 2:
-#         raise ValueError("Image loaded is not in grayscale")
-
-#     noisy_images = []
-#     for func, label in zip(noise_funcs, noise_labels):
-#         noisy = func(original_image.copy())
-#         if len(noisy.shape) != 2:
-#             raise ValueError(f"Noisy image processing failed for {label}, resulting in non-2D shape")
-#         noisy_images.append(noisy)
-#         filename_noisy = f'noised/{label.replace(" ", "_").lower()}.png'
-#         cv2.imwrite(filename_noisy, noisy)
-    
-#     denoised_images = []
-#     for noisy, n_label in zip(noisy_images, noise_labels):
-#         for func, d_label in zip(denoise_funcs, denoise_labels):
-#             denoised = func(noisy.copy())
-#             if len(denoised.shape) != 2:
-#                 raise ValueError(f"Denoising failed for {d_label} applied on {n_label}, resulting in non-2D shape")
-#             denoised_images.append(denoised)
-#             filename_denoised = f'denoised/{n_label.replace(" ", "_").lower()}_with_{d_label.replace(" ", "_").lower()}.png'
-#             cv2.imwrite(filename_denoised, denoised)
-
-#     if display:
-#         plot_results(original_image, noisy_images, denoised_images, noise_labels, denoise_labels)
-
 
 def ensure_dirs():
     dirs = ['noised', 'denoised', 'noised/high_contrast', 'noised/low_contrast', 'denoised/high_contrast', 'denoised/low_contrast']
@@ -103,12 +71,10 @@ def main():
     for noisy, label in zip(noisy_images, noise_labels):
         cv2.imwrite(f'noised/{label}.png', noisy)
 
-        # Simple denoise
         for denoise_func, denoise_label in zip(simple_denoise_funcs, simple_denoise_labels):
             denoised_image = denoise_func(noisy)
             cv2.imwrite(f'denoised/{label}_with_{denoise_label}.png', denoised_image)
 
-        # Perona-Malik with grid search
         for pm_func, pm_label in zip(pm_funcs, pm_labels):
             best_K, best_steps, _, _ = optimize_pmf_parameters(noisy, K_values, step_counts, pm_func)
             denoised_image = pm_func(noisy, best_steps, best_K)
@@ -123,38 +89,18 @@ def main_contrast():
 
     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
     denoise_labels = ['wavelet_denoising', 'gaussian_denoising', 'perona_malik_f1_denoising', 'perona_malik_f2_denoising']
-    # Directory setup for contrast images
-    # ensure_dirs(['noised/high_contrast', 'noised/low_contrast', 'denoised/high_contrast', 'denoised/low_contrast'])
 
     for img, label in zip(noise_images, noise_labels):
-        # Save the noisy images
         cv2.imwrite(f'noised/{label}.png', img)
 
         for denoise_func, denoise_label in zip(denoise_funcs, denoise_labels):
             if 'perona_malik' in denoise_label:
-                # Optimize parameters for Perona-Malik functions
                 best_K, best_steps, _, _ = optimize_pmf_parameters(img, K_values, step_counts, denoise_func)
                 denoised_image = denoise_func(img, best_steps, best_K)
             else:
                 denoised_image = denoise_func(img)
 
-            # Save the denoised images
             cv2.imwrite(f'denoised/{label}_with_{denoise_label}.png', denoised_image)
-
-# def main_contrast():
-#     high_sp, low_sp, high_gauss, low_gauss = create_contrasted_noised_images(image_path)
-
-#     noise_labels = ['high_sp', 'low_sp', 'high_gauss', 'low_gauss']
-#     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
-#     denoise_labels = ['wavelet_denoising', 'gaussian_denoising', 'perona_malik_f1_denoising', 'perona_malik_f2_denoising']
-
-#     for img, label in zip([high_sp, low_sp, high_gauss, low_gauss], noise_labels):
-#         noisy_images, denoised_images = process_image(img, [lambda x: x], denoise_funcs)
-#         cv2.imwrite(f'noised/{label}.png', img)
-
-#         for denoised, d_label in zip(denoised_images, denoise_labels):
-#             filename_denoised = f'denoised/{label}_with_{d_label.replace(" ", "_").lower()}.png'
-#             cv2.imwrite(filename_denoised, denoised)
 
 if __name__ == '__main__':
 
