@@ -16,3 +16,4 @@ def create_contrasted_noised_images(image):
     low_contrast = adjust_contrast(image, 0.5)  # Reduced contrast
 
     return high_contrast, low_contrast
+

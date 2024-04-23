@@ -5,7 +5,7 @@ import os
 import logging
 
 from noise import add_salt_pepper_noise, add_gaussian_noise
-from denoise import wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2
+from denoise import wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2, F1, F2
 from metrics import psnr, nmse, mse
 from util import ensure_dir, create_directory_structure
 from contrast import create_contrasted_noised_images
@@ -214,6 +214,25 @@ def process_with_varying_steps(noisy_image, noise_type, original_image):
     plt.close()
 
 
+def plot_diffusion_coefficient_vs_gradient_line_and_save(F, equation_number, filename):
+    image_gradients = np.linspace(0, 10, 100)
+    plt.figure()
+
+    for K in K_values:
+        diffusion = F(image_gradients, K)
+        plt.plot(image_gradients, diffusion, label=f'K = {K}')
+    
+    plt.title(f'Effect on diffusion by changing K')
+    plt.xlabel('Image Gradient')
+    plt.ylabel('Diffusion')
+    plt.legend()
+    plt.grid(True)
+    
+    # Save the figure
+    plt.savefig(f'plots/{filename}_equation_{equation_number}.png')
+    plt.close()  # Close the figure to free memory
+
+
 def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, base_directory="", K_values=None, step_counts=None):
     logger = setup_logger()  # Ensure the logger is set up once here
 
@@ -367,6 +386,10 @@ def generate_all_noised_images(original_image_path, noise_funcs, noise_labels, c
                 noised_image = func(contrasted_image.copy())
                 save_image(noised_image, f'noised/{contrast_name}', f'{label}.png')
 
+def main_k_vs_gradient():
+    plot_diffusion_coefficient_vs_gradient_line_and_save(F1, 3, 'F1')
+    plot_diffusion_coefficient_vs_gradient_line_and_save(F2, 4, 'F2')
+
 
 if __name__ == '__main__':
 
@@ -382,8 +405,9 @@ if __name__ == '__main__':
     create_directory_structure()
     generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
 
-    main()
-    main_contrast()
+    # main()
+    # main_contrast()
     main_varying_k()
     main_varing_delt()
     main_varying_steps()
+    main_k_vs_gradient()
