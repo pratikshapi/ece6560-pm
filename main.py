@@ -18,6 +18,22 @@ def add_gaussian_noise(image, mean=0, var=0.1):
     noisy = np.clip(noisy, 0, 255)
     return noisy.astype('uint8')
 
+def add_salt_pepper_noise(image, prob=0.05):
+    output = np.copy(image)
+    # Salt noise
+    num_salt = np.ceil(prob * image.size * 0.5)
+    coords = [np.random.randint(0, i - 1, int(num_salt))
+              for i in image.shape]
+    output[tuple(coords)] = 255
+    
+    # Pepper noise
+    num_pepper = np.ceil(prob * image.size * 0.5)
+    coords = [np.random.randint(0, i - 1, int(num_pepper))
+              for i in image.shape]
+    output[tuple(coords)] = 0    
+    return output
+
+
 def wavelet_denoising(image, wavelet='db4', level=5):
     coeffs = pywt.wavedec2(image, wavelet, mode='per', level=level)
     sigma = (1/0.6745) * madev(coeffs[-1][0])
@@ -117,10 +133,11 @@ def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_
 def main():
     image_path = 'images/dog.jpg'
     noise_funcs = [
-        lambda img: add_speckle_noise(img, var=0.05),
-        lambda img: add_gaussian_noise(img, var=0.05)
+        lambda img: add_salt_pepper_noise(img, prob=0.05),  # Replacing speckle noise
+        lambda img: add_gaussian_noise(img, var=0.05)  # Assuming Gaussian noise remains the same
     ]
-    noise_labels = ['Speckle Noise', 'Gaussian Noise']
+    noise_labels = ['Salt & Pepper Noise', 'Gaussian Noise']  # Update labels accordingly
+
     
     denoise_funcs = [
         lambda img: wavelet_denoising(img, level=3),
