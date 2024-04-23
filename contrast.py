@@ -2,8 +2,16 @@ import cv2
 import numpy as np
 from noise import add_salt_pepper_noise, add_gaussian_noise
 
+# def adjust_contrast(image, factor):
+#     return np.clip((image - 128) * factor + 128, 0, 255).astype(np.uint8)
+
 def adjust_contrast(image, factor):
-    return np.clip((image - 128) * factor + 128, 0, 255).astype(np.uint8)
+    """ Adjusts the contrast of an image by scaling the intensity of the pixels.
+        factor > 1 increases contrast, factor < 1 decreases it.
+    """
+    mean = np.mean(image)
+    return np.clip((image - mean) * factor + mean, 0, 255).astype(np.uint8)
+
 
 # def create_contrasted_noised_images(image_path):
 #     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
