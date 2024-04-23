@@ -13,6 +13,11 @@ from contrast import create_contrasted_noised_images
 # Set up logging
 logging.basicConfig(filename='denoise.log', level=logging.INFO)
 
+plot_directory = 'plots'
+if not os.path.exists(plot_directory):
+    os.makedirs(plot_directory)
+
+
 def setup_logger():
     logger = logging.getLogger('PSNR_Results')
     if not logger.handlers:
@@ -29,7 +34,7 @@ logger = setup_logger()
 def log_psnr_results(original_image, denoised_images, labels, logger):
     for denoised_image, label in zip(denoised_images, labels):
         psnr_value = psnr(original_image, denoised_image)
-        mse_value = nmse(original_image, denoised_image)
+        mse_value = mse(original_image, denoised_image)
         logger.info(f"{label}: PSNR = {psnr_value}")
 
 
@@ -40,7 +45,7 @@ def optimize_pmf_parameters(image, K_values, step_counts, func):
         for steps in step_counts:
             denoised_image = func(image, steps, K)
             current_psnr = psnr(original_image, denoised_image)
-            current_mse = nmse(original_image, denoised_image)
+            current_mse = mse(original_image, denoised_image)
             if current_psnr > best_psnr:
                 best_psnr, best_mse = current_psnr, current_mse
                 best_K, best_steps = K, steps
@@ -74,10 +79,13 @@ def ensure_dirs():
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-def save_image(image, directory, filename):
+def save_image(denoised_filename, best_image):
+    directory = os.path.dirname(denoised_filename)
     if not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
-    cv2.imwrite(os.path.join(directory, filename), image)
+        os.makedirs(directory)
+    
+    cv2.imwrite(denoised_filename, best_image)
+
 
 def process_and_save_denoised_images(image_path, noise_type, contrast_type, denoise_func, param, param_value):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -90,19 +98,111 @@ def process_and_save_denoised_images(image_path, noise_type, contrast_type, deno
     filename = f'{param}_{param_value}.png'
     save_image(denoised_image, directory, filename)
 
-def process_with_varying_k(noisy_image, noise_type):
+def process_with_varying_k(noisy_image, noise_type, original_image):
+    psnr_values_f1 = []
+    psnr_values_f2 = []
+
     for K in K_values:
         denoised_f1 = anisodiff_f1(noisy_image.copy(), K=K, steps=10, del_t=0.1)
         denoised_f2 = anisodiff_f2(noisy_image.copy(), K=K, steps=50, del_t=0.1)
-        save_image(denoised_f1, f'denoised/varyingK/{noise_type}', f'f1_K_{K}.png')
-        save_image(denoised_f2, f'denoised/varyingK/{noise_type}', f'f2_K_{K}.png')
+        
+        f1_filename = f'denoised/varyingK/{noise_type}/f1_K_{K}.png'
+        f2_filename = f'denoised/varyingK/{noise_type}/f2_K_{K}.png'
+        
+        save_image(f1_filename, denoised_f1)
+        save_image(f2_filename, denoised_f2)
+        
+        psnr_f1 = psnr(denoised_f1, original_image)
+        psnr_f2 = psnr(denoised_f2, original_image)
+        psnr_values_f1.append(psnr_f1)
+        psnr_values_f2.append(psnr_f2)
+    
+    # Plotting the PSNR values
+    plt.figure()
+    plt.plot(K_values, psnr_values_f1, label='F1 Denoising', marker='o')
+    plt.plot(K_values, psnr_values_f2, label='F2 Denoising', marker='o')
+    plt.xlabel('K values')
+    plt.ylabel('PSNR (dB)')
+    plt.title(f'PSNR for Varying K with {noise_type} Noise')
+    plt.legend()
+    plt.grid(True)
+    
+    # Save the plot as an image
+    plot_filename = f'{plot_directory}/{noise_type}_psnr_varying_k.png'
+    plt.savefig(plot_filename)
+    plt.close()
 
-def process_with_varying_delt(noisy_image, noise_type):
+
+
+def process_with_varying_delt(noisy_image, noise_type, original_image):
+    psnr_values_f1 = []
+    psnr_values_f2 = []
+
     for del_t in del_t_values:
         denoised_f1 = anisodiff_f1(noisy_image.copy(), K=0.1, steps=10, del_t=del_t)
         denoised_f2 = anisodiff_f2(noisy_image.copy(), K=0.1, steps=50, del_t=del_t)
-        save_image(denoised_f1, f'denoised/varyingDelt/{noise_type}', f'f1_del_t_{del_t}.png')
-        save_image(denoised_f2, f'denoised/varyingDelt/{noise_type}', f'f2_del_t_{del_t}.png')
+        
+        f1_filename = f'denoised/varyingDelt/{noise_type}/f1_K_{del_t}.png'
+        f2_filename = f'denoised/varyingDelt/{noise_type}/f2_K_{del_t}.png'
+        
+        save_image(f1_filename, denoised_f1)
+        save_image(f2_filename, denoised_f2)
+
+        psnr_f1 = psnr(denoised_f1, original_image)
+        psnr_f2 = psnr(denoised_f2, original_image)
+        psnr_values_f1.append(psnr_f1)
+        psnr_values_f2.append(psnr_f2)
+    
+    # Plotting the PSNR values
+    plt.figure()
+    plt.plot(del_t_values, psnr_values_f1, label='F1 Denoising', marker='o')
+    plt.plot(del_t_values, psnr_values_f2, label='F2 Denoising', marker='o')
+    plt.xlabel('delta t values')
+    plt.ylabel('PSNR (dB)')
+    plt.title(f'PSNR for Varying del_t with {noise_type} Noise')
+    plt.legend()
+    plt.grid(True)
+    
+    # Save the plot as an image
+    plot_filename = f'{plot_directory}/{noise_type}_psnr_varying_del_t.png'
+    plt.savefig(plot_filename)
+    plt.close()
+
+
+def process_with_varying_steps(noisy_image, noise_type, original_image):
+    psnr_values_f1 = []
+    psnr_values_f2 = []
+
+    for steps in step_counts:
+        denoised_f1 = anisodiff_f1(noisy_image.copy(), K=0.1, steps=steps, del_t=0.1)
+        denoised_f2 = anisodiff_f2(noisy_image.copy(), K=0.1, steps=steps, del_t=0.1)
+        
+        f1_filename = f'denoised/varyingSteps/{noise_type}/f1_steps_{steps}.png'
+        f2_filename = f'denoised/varyingSteps/{noise_type}/f2_steps_{steps}.png'
+        
+        save_image(f1_filename, denoised_f1)
+        save_image(f2_filename, denoised_f2)
+        
+        psnr_f1 = psnr(original_image, denoised_f1)
+        psnr_f2 = psnr(original_image, denoised_f2)
+        psnr_values_f1.append(psnr_f1)
+        psnr_values_f2.append(psnr_f2)
+    
+    # Plotting the PSNR values
+    plt.figure()
+    plt.plot(step_counts, psnr_values_f1, label='F1 Denoising', marker='o')
+    plt.plot(step_counts, psnr_values_f2, label='F2 Denoising', marker='o')
+    plt.xlabel('Step counts')
+    plt.ylabel('PSNR (dB)')
+    plt.title(f'PSNR for Varying Steps with {noise_type} Noise')
+    plt.legend()
+    plt.grid(True)
+    
+    # Save the plot as an image
+    plot_filename = f'plots/{noise_type}_psnr_varying_steps.png'
+    plt.savefig(plot_filename)
+    plt.close()
+
 
 def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, base_directory="", K_values=None, step_counts=None):
     logger = setup_logger()  # Ensure the logger is set up once here
@@ -118,18 +218,18 @@ def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_l
                 best_image = denoise_func(noisy.copy(), steps=best_steps, K=best_K)
                 # Save the best denoised image
                 denoised_filename = f'{directory}{noise_label}_with_{denoise_label}_K{best_K}_steps{best_steps}.png'
-                cv2.imwrite(denoised_filename, best_image)
-                # Log the best PSNR and NMSE values
-                logger.info(f"{denoise_label} with K={best_K} and steps={best_steps}: Best PSNR = {best_psnr}, Best NMSE = {best_mse}")
+                save_image(denoised_filename, best_image)
+                # Log the best PSNR and MSE values
+                logger.info(f"{denoise_label} with K={best_K} and steps={best_steps}: Best PSNR = {best_psnr}, Best MSE = {best_mse}")
             else:
                 # Process non-Perona-Malik methods directly
                 denoised_image = denoise_func(noisy.copy())
                 denoised_filename = f'{directory}{noise_label}_with_{denoise_label}.png'
-                cv2.imwrite(denoised_filename, denoised_image)
-                # Calculate and log PSNR and NMSE for direct methods
+                save_image(denoised_filename, denoised_image)
+                # Calculate and log PSNR and MSE for direct methods
                 psnr_value = psnr(original_image, denoised_image)
-                nmse_value = mse(original_image, denoised_image)
-                logger.info(f"{denoise_label}: PSNR = {psnr_value}, NMSE = {nmse_value}")
+                mse_value = mse(original_image, denoised_image)
+                logger.info(f"{denoise_label}: PSNR = {psnr_value}, MSE = {mse_value}")
 
 
 def validate_image(image):
@@ -173,42 +273,70 @@ def main():
 
 def main_contrast():
     logger.info("Starting denoising process from main_contrast.py...")
-    high_sp, low_sp, high_gauss, low_gauss = create_contrasted_noised_images(image_path)
-    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, contrast_levels)
-
-    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
-    noise_images = [high_sp, low_sp, high_gauss, low_gauss]
-    noise_labels = ['high_sp', 'low_sp', 'high_gauss', 'low_gauss']
+    # Load pre-generated noisy images
+    contrast_levels = ['high_contrast', 'low_contrast']
+    noise_types = ['salt_pepper_noise', 'gaussian_noise']
+    
+    # Setup for denoising functions and labels
     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
     denoise_labels = ['wavelet_denoising', 'gaussian_denoising', 'perona_malik_f1_denoising', 'perona_malik_f2_denoising']
 
-    # High and low contrast images directory setup
-    directories = ['high_contrast/', 'low_contrast/', 'high_contrast/', 'low_contrast/']
-    for img, label, directory in zip(noise_images, noise_labels, directories):
-        process_and_save_images(img, [lambda x: x], [label], denoise_funcs, denoise_labels, directory)
+    # Process each contrast level
+    for contrast in contrast_levels:
+        noisy_images = []
+        for noise_type in noise_types:
+            image_path = f'noised/{contrast}/{noise_type}.png'
+            noisy_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            validate_image(noisy_image)
+            noisy_images.append(noisy_image)
+
+        noise_labels = [f'{contrast}_{type}' for type in noise_types]
+
+        # Use a single call to process_and_save_images for each contrast level
+        base_directory = f"denoised/{contrast}/"
+        process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, base_directory, K_values, step_counts)
 
 def main_varying_k():
     logger.info("Starting denoising process from main_varying_k.py...")
-    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+    original_image = cv2.imread('images/original.jpg', cv2.IMREAD_GRAYSCALE)  # Ensure this path is correct
     noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
     noise_labels = ['salt_pepper_noise', 'gaussian_noise']
-    gaussian_image = cv2.imread('noised/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
-    salt_pepper_image = cv2.imread('noised/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
 
-    process_with_varying_k(gaussian_image, 'gaussian')
-    process_with_varying_k(salt_pepper_image, 'salt_pepper')
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+
+    gaussian_image = cv2.imread('noised/normal/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
+    salt_pepper_image = cv2.imread('noised/normal/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
+
+    process_with_varying_k(gaussian_image, 'gaussian', original_image)
+    process_with_varying_k(salt_pepper_image, 'salt_pepper', original_image)
+
 
 def main_varing_delt():
     logger.info("Starting denoising process from main_varing_delt.py...")
-    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+    original_image = cv2.imread('images/original.jpg', cv2.IMREAD_GRAYSCALE)  
     noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
     noise_labels = ['salt_pepper_noise', 'gaussian_noise']
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
 
-    gaussian_image = cv2.imread('noised/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
-    salt_pepper_image = cv2.imread('noised/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
 
-    process_with_varying_delt(gaussian_image, 'gaussian')
-    process_with_varying_delt(salt_pepper_image, 'salt_pepper')
+    gaussian_image = cv2.imread('noised/normal/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
+    salt_pepper_image = cv2.imread('noised/normal/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
+
+    process_with_varying_delt(gaussian_image, 'gaussian', original_image)
+    process_with_varying_delt(salt_pepper_image, 'salt_pepper', original_image)
+
+def main_varying_steps():
+    logger.info("Starting denoising process with varying steps from main.py...")
+    original_image = cv2.imread('images/original.jpg', cv2.IMREAD_GRAYSCALE)
+    validate_image(original_image)
+    
+    # Assuming images are already noised and saved under 'noised/normal'
+    gaussian_image = cv2.imread('noised/normal/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
+    salt_pepper_image = cv2.imread('noised/normal/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
+
+    process_with_varying_steps(gaussian_image, 'gaussian', original_image)
+    process_with_varying_steps(salt_pepper_image, 'salt_pepper', original_image)
+
 
 def generate_all_noised_images(original_image_path, noise_funcs, noise_labels, contrast_levels):
     original_image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
@@ -246,7 +374,8 @@ if __name__ == '__main__':
     # create_directory_structure()
     # generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
 
-    main()
+    # main()
     # main_contrast()
     # main_varying_k()
     # main_varing_delt()
+    # main_varying_steps()
