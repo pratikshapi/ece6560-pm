@@ -120,15 +120,49 @@ def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
     plt.tight_layout()
     plt.show()
 
+# def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
+#     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+#     noisy_images = [func(original_image.copy()) for func in noise_funcs]
+#     denoised_images = [[func(noisy.copy()) for noisy in noisy_images] for func in denoise_funcs]
+
+#     if display:
+#         plot_results(original_image, noisy_images, denoised_images, noise_labels, denoise_labels)
+
+#     return noisy_images, denoised_images
+
+import cv2
+
 def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    noisy_images = [func(original_image.copy()) for func in noise_funcs]
-    denoised_images = [[func(noisy.copy()) for noisy in noisy_images] for func in denoise_funcs]
+    noisy_images = []
+    
+    # Create and save noisy images
+    for func, label in zip(noise_funcs, noise_labels):
+        noisy = func(original_image.copy())
+        noisy_images.append(noisy)
+        cv2.imwrite(f'noised/{label.replace(" ", "_")}.png', noisy)
+    
+    # Create and save denoised images
+    denoised_images = []
+    for noisy, n_label in zip(noisy_images, noise_labels):
+        for func, d_label in zip(denoise_funcs, denoise_labels):
+            denoised = func(noisy.copy())
+            denoised_images.append(denoised)
+            filename = f'{n_label.replace(" ", "_").lower()}_with_{d_label.replace(" ", "_").lower()}.png'
+            cv2.imwrite(f'denoised/{filename}', denoised)
 
+    
     if display:
         plot_results(original_image, noisy_images, denoised_images, noise_labels, denoise_labels)
 
     return noisy_images, denoised_images
+
+def ensure_dir(file_path):
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+
+ensure_dir('noised')
+ensure_dir('denoised')
 
 def main():
     image_path = 'images/dog.jpg'
