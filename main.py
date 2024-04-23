@@ -136,16 +136,13 @@ def main():
     ensure_dir('denoised')
     image_path = 'images/dog.jpg'
     
-    noise_funcs = [
-        add_salt_pepper_noise,  # Assume you've defined the probability parameter within the function or modify as needed
-        add_gaussian_noise
-    ]
-    noise_labels = ['Salt & Pepper Noise', 'Gaussian Noise']
-    
+    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
+    noise_labels = ['salt & pepper noise', 'gaussian noise'] 
     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
-    denoise_labels = ['Wavelet Denoising', 'Gaussian Denoising', 'Perona-Malik F1 Denoising', 'Perona-Malik F2 Denoising']
+    denoise_labels = ['wavelet denoising', 'gaussian denoising', 'perona-malik f1 denoising', 'perona-malik f2 denoising']
     
     process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels)
+
 
 if __name__ == '__main__':
     main()
