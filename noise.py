@@ -6,15 +6,15 @@ def add_speckle_noise(image, mean=0, var=0.1):
     noisy = image + image * gauss * var
     return noisy.astype('uint8')
 
-def add_gaussian_noise(image, mean=0, var=0.1):
+def add_gaussian_noise(image, mean=0, var=0.01):
     row, col = image.shape
     sigma = var**0.5
-    gauss = np.random.normal(mean, sigma, (row, col)) * 50
+    gauss = np.random.normal(mean, sigma, (row, col)) #* 50
     noisy = image + gauss
     noisy = np.clip(noisy, 0, 255)
     return noisy.astype('uint8')
 
-def add_salt_pepper_noise(image, prob=0.05):
+def add_salt_pepper_noise(image, prob=0.01):
     output = np.copy(image)
     # Salt noise
     num_salt = np.ceil(prob * image.size * 0.5)

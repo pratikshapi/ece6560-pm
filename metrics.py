@@ -9,3 +9,8 @@ def psnr(target, ref):
 
 def mse(target, ref):
     return np.mean((target - ref) ** 2)
+
+def nmse(target, reference):
+    l2_norm = np.linalg.norm(target - reference)
+    nmse = l2_norm ** 2 / np.mean(reference ** 2)
+    return nmse

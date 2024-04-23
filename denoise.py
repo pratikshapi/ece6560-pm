@@ -1,6 +1,7 @@
 import numpy as np
 import pywt
 import cv2
+import matplotlib.pyplot as plt
 
 def madev(d, axis=None):
     return np.mean(np.absolute(d - np.mean(d, axis)), axis)
@@ -23,26 +24,46 @@ def F2(dt, K):
     func = 1 / (1 + ((dt/K)**2))
     return func
 
-def anisodiff_f1(img, steps=10, K=0.1, del_t=0.25):
-    upgrade_img = np.zeros(img.shape, dtype=img.dtype)
-    for t in range(steps):
-        dn = img[:-2, 1:-1] - img[1:-1, 1:-1]
-        ds = img[2:, 1:-1] - img[1:-1, 1:-1]
-        de = img[1:-1, 2:] - img[1:-1, 1:-1]
-        dw = img[1:-1, :-2] - img[1:-1, 1:-1]
-        upgrade_img[1:-1, 1:-1] = img[1:-1, 1:-1] + del_t * (
-            F1(dn, K) * dn + F1(ds, K) * ds + F1(de, K) * de + F1(dw, K) * dw)
-        img = upgrade_img
-    return img
+def anisodiff_f1(image, steps=10, K=0.1, del_t=0.01, debug=False):
+    denoised_image = np.zeros(image.shape, dtype=image.dtype)
+    for i in range(steps):
+        north_diff = image[:-2, 1:-1] - image[1:-1, 1:-1]
+        south_diff = image[2:, 1:-1] - image[1:-1, 1:-1]
+        east_diff = image[1:-1, 2:] - image[1:-1, 1:-1]
+        west_diff = image[1:-1, :-2] - image[1:-1, 1:-1]
+        denoised_image[1:-1, 1:-1] = image[1:-1, 1:-1] + del_t * (
+            F1(north_diff, K) * north_diff + F1(south_diff, K) * south_diff +
+            F1(east_diff, K) * east_diff + F1(west_diff, K) * west_diff)
+        image = denoised_image.copy() 
 
-def anisodiff_f2(img, steps=50, K=4, del_t=0.25):
-    upgrade_img = np.zeros(img.shape, dtype=img.dtype)
-    for t in range(steps):
-        dn = img[:-2, 1:-1] - img[1:-1, 1:-1]
-        ds = img[2:, 1:-1] - img[1:-1, 1:-1]
-        de = img[1:-1, 2:] - img[1:-1, 1:-1]
-        dw = img[1:-1, :-2] - img[1:-1, 1:-1]
-        upgrade_img[1:-1, 1:-1] = img[1:-1, 1:-1] + del_t * (
-            F2(dn, K) * dn + F2(ds, K) * ds + F2(de, K) * de + F2(dw, K) * dw)
-        img = upgrade_img
-    return img
+        # Visual debugging
+        if debug and i%10 == 0:
+            plt.figure(figsize=(4, 4))
+            plt.imshow(image, cmap='gray')
+            plt.title(f'Step {i+1}')
+            plt.axis('off')
+            plt.show()
+            
+    return image
+
+def anisodiff_f2(image, steps=50, K=4, del_t=0.01, debug=False):
+    denoised_image = np.zeros(image.shape, dtype=image.dtype)
+    for i in range(steps):
+        north_diff = image[:-2, 1:-1] - image[1:-1, 1:-1]
+        south_diff = image[2:, 1:-1] - image[1:-1, 1:-1]
+        east_diff = image[1:-1, 2:] - image[1:-1, 1:-1]
+        west_diff = image[1:-1, :-2] - image[1:-1, 1:-1]
+        denoised_image[1:-1, 1:-1] = image[1:-1, 1:-1] + del_t * (
+            F2(north_diff, K) * north_diff + F2(south_diff, K) * south_diff +
+            F2(east_diff, K) * east_diff + F2(west_diff, K) * west_diff)
+        image = denoised_image.copy() 
+
+        # Visual debugging
+        if debug and i%10 == 0:
+            plt.figure(figsize=(4, 4))
+            plt.imshow(image, cmap='gray')
+            plt.title(f'Step {i+1}')
+            plt.axis('off')
+            plt.show()
+            
+    return image

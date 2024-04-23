@@ -6,8 +6,8 @@ import logging
 
 from noise import add_salt_pepper_noise, add_gaussian_noise
 from denoise import wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2
-from metrics import psnr, mse
-from util import ensure_dir
+from metrics import psnr, nmse
+from util import ensure_dir, create_directory_structure
 from contrast import create_contrasted_noised_images
 
 # Set up logging
@@ -20,11 +20,11 @@ def optimize_pmf_parameters(image, K_values, step_counts, func):
         for steps in step_counts:
             denoised_image = func(image, steps, K)
             current_psnr = psnr(original_image, denoised_image)
-            current_mse = mse(original_image, denoised_image)
-            logging.info(f'K: {K}, Steps: {steps}, PSNR: {current_psnr}, MSE: {current_mse}')
+            current_mse = nmse(original_image, denoised_image)
             if current_psnr > best_psnr:
                 best_psnr, best_mse = current_psnr, current_mse
                 best_K, best_steps = K, steps
+    logging.info(f'best_K: {best_K}, best_steps: {best_steps}, best_psnr: {best_psnr}, best_mse: {best_mse}')
     return best_K, best_steps, best_psnr, best_mse
 
 def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
@@ -54,6 +54,36 @@ def ensure_dirs():
         if not os.path.exists(dir):
             os.makedirs(dir)
 
+def save_image(image, directory, filename):
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+    cv2.imwrite(os.path.join(directory, filename), image)
+
+def process_and_save_denoised_images(image_path, noise_type, contrast_type, denoise_func, param, param_value):
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if 'varyingK' in denoise_func.__name__:
+        denoised_image = denoise_func(image, K=param_value)
+    elif 'varyingDelt' in denoise_func.__name__:
+        denoised_image = denoise_func(image, del_t=param_value)
+
+    directory = f'denoised/{contrast_type}/{denoise_func.__name__}/{noise_type}'
+    filename = f'{param}_{param_value}.png'
+    save_image(denoised_image, directory, filename)
+
+def process_with_varying_k(noisy_image, noise_type):
+    for K in K_values:
+        denoised_f1 = anisodiff_f1(noisy_image.copy(), K=K, steps=10, del_t=0.1)
+        denoised_f2 = anisodiff_f2(noisy_image.copy(), K=K, steps=50, del_t=0.1)
+        save_image(denoised_f1, f'denoised/varyingK/{noise_type}', f'f1_K_{K}.png')
+        save_image(denoised_f2, f'denoised/varyingK/{noise_type}', f'f2_K_{K}.png')
+
+def process_with_varying_delt(noisy_image, noise_type):
+    for del_t in del_t_values:
+        denoised_f1 = anisodiff_f1(noisy_image.copy(), K=0.1, steps=10, del_t=del_t)
+        denoised_f2 = anisodiff_f2(noisy_image.copy(), K=0.1, steps=50, del_t=del_t)
+        save_image(denoised_f1, f'denoised/varyingDelt/{noise_type}', f'f1_del_t_{del_t}.png')
+        save_image(denoised_f2, f'denoised/varyingDelt/{noise_type}', f'f2_del_t_{del_t}.png')
+
 def process_and_save_images(original_image, noise_funcs, noise_labels, denoise_funcs, denoise_labels, directory=""):
     noisy_images = [func(original_image.copy()) for func in noise_funcs]
 
@@ -75,10 +105,29 @@ def validate_image(image):
     if image is None or len(image.shape) != 2:
         raise ValueError("Invalid image. Ensure it is grayscale and exists.")
 
+def generate_noised_images_if_absent(original_image_path, noise_funcs, noise_labels, contrast_levels):
+    original_image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
+    validate_image(original_image)
+    
+    # Check and create noised images for each contrast level
+    for contrast in contrast_levels:
+        for func, label in zip(noise_funcs, noise_labels):
+            noised_image_path = f'noised/{contrast}/{label}.png'
+            if not os.path.exists(noised_image_path):
+                if contrast == 'normal':
+                    noised_image = func(original_image.copy())
+                else:
+                    # Assuming create_contrasted_noised_images is a function that takes an image and a contrast label
+                    # and returns a noised image with the specified contrast level
+                    noised_image = create_contrasted_noised_images(original_image, contrast, func)
+                save_image(noised_image, f'noised/{contrast}', f'{label}.png')
+
+
 def main():
-    image_path = 'images/dog.jpg'
     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     validate_image(original_image)
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+
 
     noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
     noise_labels = ['salt_pepper_noise', 'gaussian_noise']
@@ -88,9 +137,10 @@ def main():
     process_and_save_images(original_image, noise_funcs, noise_labels, denoise_funcs, denoise_labels)
 
 def main_contrast():
-    image_path = 'images/dog.jpg'
     high_sp, low_sp, high_gauss, low_gauss = create_contrasted_noised_images(image_path)
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, contrast_levels)
 
+    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
     noise_images = [high_sp, low_sp, high_gauss, low_gauss]
     noise_labels = ['high_sp', 'low_sp', 'high_gauss', 'low_gauss']
     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
@@ -101,12 +151,66 @@ def main_contrast():
     for img, label, directory in zip(noise_images, noise_labels, directories):
         process_and_save_images(img, [lambda x: x], [label], denoise_funcs, denoise_labels, directory)
 
+def main_varying_k():
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
+    noise_labels = ['salt_pepper_noise', 'gaussian_noise']
+
+
+
+    gaussian_image = cv2.imread('noised/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
+    salt_pepper_image = cv2.imread('noised/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
+
+    process_with_varying_k(gaussian_image, 'gaussian')
+    process_with_varying_k(salt_pepper_image, 'salt_pepper')
+
+def main_varing_delt():
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
+    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
+    noise_labels = ['salt_pepper_noise', 'gaussian_noise']
+
+    gaussian_image = cv2.imread('noised/gaussian_noise.png', cv2.IMREAD_GRAYSCALE)
+    salt_pepper_image = cv2.imread('noised/salt_pepper_noise.png', cv2.IMREAD_GRAYSCALE)
+
+    process_with_varying_delt(gaussian_image, 'gaussian')
+    process_with_varying_delt(salt_pepper_image, 'salt_pepper')
+
+def generate_all_noised_images(original_image_path, noise_funcs, noise_labels, contrast_levels):
+    original_image = cv2.imread(original_image_path, cv2.IMREAD_GRAYSCALE)
+    validate_image(original_image)
+
+    # Handle the normal contrast level first
+    for func, label in zip(noise_funcs, noise_labels):
+        noised_image_path = f'noised/normal/{label}.png'
+        if not os.path.exists(noised_image_path):
+            noised_image = func(original_image.copy())
+            save_image(noised_image, 'noised/normal', f'{label}.png')
+
+    # Now handle high and low contrast levels
+    high_contrast, low_contrast = create_contrasted_noised_images(original_image)
+    contrasts = {'high_contrast': high_contrast, 'low_contrast': low_contrast}
+    for contrast_name, contrasted_image in contrasts.items():
+        for func, label in zip(noise_funcs, noise_labels):
+            noised_image_path = f'noised/{contrast_name}/{label}.png'
+            if not os.path.exists(noised_image_path):
+                noised_image = func(contrasted_image.copy())
+                save_image(noised_image, f'noised/{contrast_name}', f'{label}.png')
+
 
 if __name__ == '__main__':
 
     image_path = 'images/dog.jpg'
     K_values = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 3, 10]
+    del_t_values = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2]
     step_counts = [5, 10, 50, 100, 150, 200]
-    ensure_dirs()
+    noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
+    noise_labels = ['salt_pepper_noise', 'gaussian_noise']
+    contrast_levels = ['high_contrast', 'low_contrast', 'normal']
+
+    # create_directory_structure()
+    # generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
+
     main()
-    main_contrast()
+    # main_contrast()
+    # main_varying_k()
+    # main_varing_delt()
