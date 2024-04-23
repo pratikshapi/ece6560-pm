@@ -73,70 +73,131 @@ def psnr(target, ref):
 def mse(target, ref):
     return np.mean((target - ref) ** 2)
 
-
 def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
     plt.figure(figsize=(15, 10))
     num_noisy = len(noisy)
-    cols = max(2, num_noisy + 1)  # At least two columns for original and one type of noisy image
+    cols = num_noisy + 1  # For noisy images and the original image
 
-    # First row: original and noisy images
-    plt.subplot(5, cols, 1)
+    # First row: noisy images first, then the original image
+    for i, img in enumerate(noisy, start=1):
+        plt.subplot(5, cols, i)
+        plt.imshow(img, cmap='gray')
+        plt.title(noise_labels[i-1])
+        plt.axis('off')
+
+    # Place the original image last in the first row
+    plt.subplot(5, cols, cols)
     plt.imshow(original, cmap='gray')
     plt.title("Original")
     plt.axis('off')
 
-    for i, img in enumerate(noisy, start=2):
-        plt.subplot(5, cols, i)
-        plt.imshow(img, cmap='gray')
-        plt.title(noise_labels[i-2])
-        plt.axis('off')
-
     # Subsequent rows: denoised images for each method
     row_offset = cols
-    for d_index, (denoised_group, label) in enumerate(zip(denoised, denoise_labels), start=1):
+    for d_index, denoised_group in enumerate(denoised):
         for i, img in enumerate(denoised_group, start=row_offset + 1):
             plt.subplot(5, cols, i)
             plt.imshow(img, cmap='gray')
-            plt.title(f"{label}\n{noise_labels[(i - row_offset - 1) % num_noisy]}")
+            plt.title(f"{denoise_labels[d_index]}\n{noise_labels[(i - row_offset - 1) % num_noisy]}")
             plt.axis('off')
         row_offset += cols
 
     plt.tight_layout()
     plt.show()
 
+# def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
+#     plt.figure(figsize=(15, 10))
+#     num_noisy = len(noisy)
+#     cols = num_noisy + 1  # For noisy images and the original image
+
+#     # First row: noisy images first, then the original image
+#     for i, img in enumerate(noisy, start=1):
+#         plt.subplot(5, cols, i)
+#         plt.imshow(img, cmap='gray')
+#         plt.title(noise_labels[i-1])
+#         plt.axis('off')
+
+#     # Place the original image last in the first row
+#     plt.subplot(5, cols, cols)
+#     plt.imshow(original, cmap='gray')
+#     plt.title("Original")
+#     plt.axis('off')
+
+#     # Subsequent rows: denoised images for each method
+#     row_offset = cols
+#     for d_index, (denoised_group, label) in enumerate(zip(denoised, denoise_labels), start=1):
+#         for i, img in enumerate(denoised_group, start=row_offset + 1):
+#             plt.subplot(5, cols, i)
+#             plt.imshow(img, cmap='gray')
+#             plt.title(f"{label}\n{noise_labels[(i - row_offset - 1) % num_noisy]}")
+#             plt.axis('off')
+#         row_offset += cols
+
+#     plt.tight_layout()
+#     plt.show()
+
+# # def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
+#     plt.figure(figsize=(15, 10))
+#     num_noisy = len(noisy)
+#     cols = max(2, num_noisy + 1)  # At least two columns for original and one type of noisy image
+
+#     # First row: original and noisy images
+#     plt.subplot(5, cols, 1)
+#     plt.imshow(original, cmap='gray')
+#     plt.title("Original")
+#     plt.axis('off')
+
+#     for i, img in enumerate(noisy, start=2):
+#         plt.subplot(5, cols, i)
+#         plt.imshow(img, cmap='gray')
+#         plt.title(noise_labels[i-2])
+#         plt.axis('off')
+
+#     # Subsequent rows: denoised images for each method
+#     row_offset = cols
+#     for d_index, (denoised_group, label) in enumerate(zip(denoised, denoise_labels), start=1):
+#         for i, img in enumerate(denoised_group, start=row_offset + 1):
+#             plt.subplot(5, cols, i)
+#             plt.imshow(img, cmap='gray')
+#             plt.title(f"{label}\n{noise_labels[(i - row_offset - 1) % num_noisy]}")
+#             plt.axis('off')
+#         row_offset += cols
+
+#     plt.tight_layout()
+#     plt.show()
+
 
 # def plot_results(original, noisy, denoised_wavelet, denoised_gaussian, denoised_pm_f1, denoised_pm_f2, noise_labels):
-    plt.figure(figsize=(15, 10))
-    num_noisy = len(noisy)
-    cols = max(2, num_noisy + 1)  # At least two columns for original and one type of noisy image
+#     plt.figure(figsize=(15, 10))
+#     num_noisy = len(noisy)
+#     cols = max(2, num_noisy + 1)  # At least two columns for original and one type of noisy image
     
-    # Plot original and all noisy images in the first row
-    plt.subplot(5, cols, 1)
-    plt.imshow(original, cmap='gray')
-    plt.title("Original")
-    plt.axis('off')
+#     # Plot original and all noisy images in the first row
+#     plt.subplot(5, cols, 1)
+#     plt.imshow(original, cmap='gray')
+#     plt.title("Original")
+#     plt.axis('off')
     
-    for i, img in enumerate(noisy, start=2):
-        plt.subplot(5, cols, i)
-        plt.imshow(img, cmap='gray')
-        plt.title(noise_labels[i-2])
-        plt.axis('off')
+#     for i, img in enumerate(noisy, start=2):
+#         plt.subplot(5, cols, i)
+#         plt.imshow(img, cmap='gray')
+#         plt.title(noise_labels[i-2])
+#         plt.axis('off')
     
-    # Plot denoised images row by row
-    def plot_denoised(row_start, denoised_images):
-        for i, img in enumerate(denoised_images, start=row_start):
-            plt.subplot(5, cols, i)
-            plt.imshow(img, cmap='gray')
-            plt.title(f"{noise_labels[(i-row_start)%num_noisy]}")
-            plt.axis('off')
+#     # Plot denoised images row by row
+#     def plot_denoised(row_start, denoised_images):
+#         for i, img in enumerate(denoised_images, start=row_start):
+#             plt.subplot(5, cols, i)
+#             plt.imshow(img, cmap='gray')
+#             plt.title(f"{noise_labels[(i-row_start)%num_noisy]}")
+#             plt.axis('off')
     
-    plot_denoised(cols + 1, denoised_wavelet)
-    plot_denoised(2 * cols + 1, denoised_gaussian)
-    plot_denoised(3 * cols + 1, denoised_pm_f1)
-    plot_denoised(4 * cols + 1, denoised_pm_f2)
+#     plot_denoised(cols + 1, denoised_wavelet)
+#     plot_denoised(2 * cols + 1, denoised_gaussian)
+#     plot_denoised(3 * cols + 1, denoised_pm_f1)
+#     plot_denoised(4 * cols + 1, denoised_pm_f2)
 
-    plt.tight_layout()
-    plt.show()
+#     plt.tight_layout()
+#     plt.show()
 
 
 # def plot_results(images, titles):
@@ -160,6 +221,17 @@ def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_
     return noisy_images, denoised_images
 
 
+# def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
+    original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    noisy_images = [func(original_image.copy()) for func in noise_funcs]
+    denoised_images = [[func(noisy.copy()) for noisy in noisy_images] for func in denoise_funcs]
+
+    if display:
+        plot_results(original_image, noisy_images, denoised_images, noise_labels, denoise_labels)
+
+    return noisy_images, denoised_images
+
+
 # def process_image(image_path, noise_funcs, denoise_funcs, display=True):
     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     noisy_images = [func(original_image.copy()) for func in noise_funcs]
@@ -173,10 +245,10 @@ def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_
 
     return noisy_images, denoised_wavelet, denoised_gaussian, denoised_pm_f1, denoised_pm_f2
 
-def main():
-    image_path = 'images/dog.jpg'
-    noise_funcs = [lambda img: add_speckle_noise(img, var=0.05), lambda img: add_gaussian_noise(img, var=0.05)]
-    process_image(image_path, noise_funcs, None)
+# def main():
+#     image_path = 'images/dog.jpg'
+#     noise_funcs = [lambda img: add_speckle_noise(img, var=0.05), lambda img: add_gaussian_noise(img, var=0.05)]
+#     process_image(image_path, noise_funcs, None)
 
 
 # def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
