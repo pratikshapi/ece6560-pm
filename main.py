@@ -149,7 +149,18 @@ def plot_results(original, noisy, denoised, noise_labels, denoise_labels):
 #     plt.tight_layout()
 #     plt.show()
 
-def process_image(image_path, noise_funcs, denoise_funcs, display=True):
+def process_image(image_path, noise_funcs, noise_labels, denoise_funcs, denoise_labels, display=True):
+    original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    noisy_images = [func(original_image.copy()) for func in noise_funcs]
+    denoised_images = [[func(noisy.copy()) for noisy in noisy_images] for func in denoise_funcs]
+
+    if display:
+        plot_results(original_image, noisy_images, denoised_images, noise_labels, denoise_labels)
+
+    return noisy_images, denoised_images
+
+
+# def process_image(image_path, noise_funcs, denoise_funcs, display=True):
     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     noisy_images = [func(original_image.copy()) for func in noise_funcs]
     denoised_wavelet = [wavelet_denoising(noisy.copy()) for noisy in noisy_images]
