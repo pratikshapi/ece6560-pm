@@ -13,6 +13,23 @@ from contrast import create_contrasted_noised_images
 # Set up logging
 logging.basicConfig(filename='denoise.log', level=logging.INFO)
 
+def setup_logger():
+    logger = logging.getLogger('PSNR_Results')
+    handler = logging.FileHandler('results.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return logger
+
+results_logger = setup_logger()
+
+def log_psnr_results(original_image, denoised_images, labels, logger):
+    for denoised_image, label in zip(denoised_images, labels):
+        psnr_value = psnr(original_image, denoised_image)
+        logger.info(f"{label}: PSNR = {psnr_value}")
+
+
 def optimize_pmf_parameters(image, K_values, step_counts, func):
     best_psnr, best_mse, best_K, best_steps = -np.inf, np.inf, None, None
     original_image = cv2.imread('images/original.jpg', cv2.IMREAD_GRAYSCALE)  # Path to the original image for PSNR comparison
@@ -84,22 +101,84 @@ def process_with_varying_delt(noisy_image, noise_type):
         save_image(denoised_f1, f'denoised/varyingDelt/{noise_type}', f'f1_del_t_{del_t}.png')
         save_image(denoised_f2, f'denoised/varyingDelt/{noise_type}', f'f2_del_t_{del_t}.png')
 
-def process_and_save_images(original_image, noise_funcs, noise_labels, denoise_funcs, denoise_labels, directory=""):
-    noisy_images = [func(original_image.copy()) for func in noise_funcs]
-
+def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, base_directory="", K_values=None, step_counts=None):
     for noisy, noise_label in zip(noisy_images, noise_labels):
-        noisy_filename = f'noised/{directory}{noise_label}.png'
-        cv2.imwrite(noisy_filename, noisy)
-
+        # Update the directory path based on the noise label
+        directory = f"{base_directory}{noise_label}/"
+        
         for denoise_func, denoise_label in zip(denoise_funcs, denoise_labels):
             if 'perona_malik' in denoise_label:
-                best_K, best_steps, _, _ = optimize_pmf_parameters(noisy, K_values, step_counts, denoise_func)
-                denoised_image = denoise_func(noisy, best_steps, best_K)
+                # Perform grid search for optimal parameters
+                best_psnr, best_image, best_K, best_steps = -float('inf'), None, None, None
+                for K in K_values:
+                    for steps in step_counts:
+                        denoised_image = denoise_func(noisy.copy(), steps=steps, K=K)
+                        psnr_value = psnr(original_image, denoised_image)  # Ensure 'original_image' is accessible
+                        if psnr_value > best_psnr:
+                            best_psnr = psnr_value
+                            best_image = denoised_image
+                            best_K = K
+                            best_steps = steps
+                # Save best denoised image from grid search
+                denoised_filename = f'{directory}{noise_label}_with_{denoise_label}_K{best_K}_steps{best_steps}.png'
+                cv2.imwrite(denoised_filename, best_image)
             else:
-                denoised_image = denoise_func(noisy)
+                # Apply denoising method directly without parameter tuning
+                denoised_image = denoise_func(noisy.copy())
+                denoised_filename = f'{directory}{noise_label}_with_{denoise_label}.png'
+                cv2.imwrite(denoised_filename, denoised_image)
+        
+        log_psnr_results(original_image, denoised_images, labels, logger)
 
-            denoised_filename = f'denoised/{directory}{noise_label}_with_{denoise_label}.png'
-            cv2.imwrite(denoised_filename, denoised_image)
+
+# def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, directory="", K_values=None, step_counts=None):
+#     for noisy, noise_label in zip(noisy_images, noise_labels):
+#         for denoise_func, denoise_label in zip(denoise_funcs, denoise_labels):
+#             if 'perona_malik' in denoise_label:
+#                 # Perform grid search for optimal parameters
+#                 best_psnr, best_image, best_K, best_steps = -float('inf'), None, None, None
+#                 for K in K_values:
+#                     for steps in step_counts:
+#                         denoised_image = denoise_func(noisy.copy(), steps=steps, K=K)
+#                         psnr_value = psnr(original_image, denoised_image)
+#                         if psnr_value > best_psnr:
+#                             best_psnr = psnr_value
+#                             best_image = denoised_image
+#                             best_K = K
+#                             best_steps = steps
+#                 # Save best denoised image from grid search
+#                 denoised_filename = f'denoised/{directory}{noise_label}_with_{denoise_label}_K{best_K}_steps{best_steps}.png'
+#                 cv2.imwrite(denoised_filename, best_image)
+#             else:
+#                 # Apply denoising method directly without parameter tuning
+#                 denoised_image = denoise_func(noisy.copy())
+#                 denoised_filename = f'denoised/{directory}{noise_label}_with_{denoise_label}.png'
+#                 cv2.imwrite(denoised_filename, denoised_image)
+
+# def process_and_save_images(original_image, noise_funcs, noise_labels, denoise_funcs, denoise_labels, directory=""):
+#     noisy_images = [func(original_image.copy()) for func in noise_funcs]
+
+#     for noisy, noise_label in zip(noisy_images, noise_labels):
+#         noisy_filename = f'noised/{directory}{noise_label}.png'
+#         cv2.imwrite(noisy_filename, noisy)
+
+#         for denoise_func, denoise_label in zip(denoise_funcs, denoise_labels):
+#             if 'perona_malik' in denoise_label:
+#                 best_K, best_steps, _, _ = optimize_pmf_parameters(noisy, K_values, step_counts, denoise_func)
+#                 denoised_image = denoise_func(noisy, best_steps, best_K)
+#             else:
+#                 denoised_image = denoise_func(noisy)
+
+#             denoised_filename = f'denoised/{directory}{noise_label}_with_{denoise_label}.png'
+#             cv2.imwrite(denoised_filename, denoised_image)
+
+# def process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, directory=""):
+#     for noisy, noise_label in zip(noisy_images, noise_labels):
+#         for denoise_func, denoise_label in zip(denoise_funcs, denoise_labels):
+#             denoised_image = denoise_func(noisy.copy())
+#             denoised_filename = f'denoised/{directory}{noise_label}_with_{denoise_label}.png'
+#             cv2.imwrite(denoised_filename, denoised_image)
+
 
 def validate_image(image):
     if image is None or len(image.shape) != 2:
@@ -122,19 +201,22 @@ def generate_noised_images_if_absent(original_image_path, noise_funcs, noise_lab
                     noised_image = create_contrasted_noised_images(original_image, contrast, func)
                 save_image(noised_image, f'noised/{contrast}', f'{label}.png')
 
+def generate_noisy_images(original_image, noise_funcs):
+    noisy_images = [func(original_image.copy()) for func in noise_funcs]
+    return noisy_images
 
 def main():
     original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     validate_image(original_image)
-    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
-
-
+    base_directory = "denoised/"
     noise_funcs = [add_salt_pepper_noise, add_gaussian_noise]
     noise_labels = ['salt_pepper_noise', 'gaussian_noise']
+    generate_noised_images_if_absent(image_path, noise_funcs, noise_labels, ['normal'])
     denoise_funcs = [wavelet_denoising, gaussian_denoise, anisodiff_f1, anisodiff_f2]
     denoise_labels = ['wavelet_denoising', 'gaussian_denoising', 'perona_malik_f1_denoising', 'perona_malik_f2_denoising']
 
-    process_and_save_images(original_image, noise_funcs, noise_labels, denoise_funcs, denoise_labels)
+    noisy_images = generate_noisy_images(original_image, noise_funcs)
+    process_and_save_images(noisy_images, noise_labels, denoise_funcs, denoise_labels, base_directory, K_values, step_counts)
 
 def main_contrast():
     high_sp, low_sp, high_gauss, low_gauss = create_contrasted_noised_images(image_path)
@@ -200,6 +282,7 @@ def generate_all_noised_images(original_image_path, noise_funcs, noise_labels, c
 if __name__ == '__main__':
 
     image_path = 'images/dog.jpg'
+    original_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     K_values = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 3, 10]
     del_t_values = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2]
     step_counts = [5, 10, 50, 100, 150, 200]
