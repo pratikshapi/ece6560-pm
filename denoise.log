@@ -1,0 +1,85 @@
+INFO:PSNR_Results:Starting denoising process from main.py...
+INFO:PSNR_Results:wavelet_denoising: PSNR = 25.278232283710334, MSE = 192.86664797242992
+INFO:PSNR_Results:gaussian_denoising: PSNR = 33.151251508689704, MSE = 31.474236947791166
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 44.25088718010079, best_mse: 2.443383534136546
+INFO:PSNR_Results:perona_malik_f1_denoising with K=0.01 and steps=5: Best PSNR = 44.25088718010079, Best MSE = 2.443383534136546
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 44.55612402581142, best_mse: 2.277550200803213
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 44.55612402581142, Best MSE = 2.277550200803213
+INFO:PSNR_Results:wavelet_denoising: PSNR = 31.69125445605266, MSE = 44.05091312437496
+INFO:PSNR_Results:gaussian_denoising: PSNR = 34.01627835222297, MSE = 25.7900702811245
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 45.30233576759228, best_mse: 1.9179919678714858
+INFO:PSNR_Results:perona_malik_f1_denoising with K=0.01 and steps=5: Best PSNR = 45.30233576759228, Best MSE = 1.9179919678714858
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 45.508223147429376, best_mse: 1.829186746987952
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 45.508223147429376, Best MSE = 1.829186746987952
+INFO:PSNR_Results:Starting denoising process from main_contrast.py...
+INFO:PSNR_Results:wavelet_denoising: PSNR = 20.722184902147, MSE = 550.6325373542596
+INFO:PSNR_Results:gaussian_denoising: PSNR = 28.65250103649219, MSE = 88.68093373493976
+INFO:root:best_K: 10, best_steps: 5, best_psnr: 28.83203015834026, best_mse: 85.08976907630522
+INFO:PSNR_Results:perona_malik_f1_denoising with K=10 and steps=5: Best PSNR = 28.83203015834026, Best MSE = 85.08976907630522
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 28.674783150294985, best_mse: 88.22710843373494
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 28.674783150294985, Best MSE = 88.22710843373494
+INFO:PSNR_Results:wavelet_denoising: PSNR = 21.779998048559182, MSE = 431.59912546175946
+INFO:PSNR_Results:gaussian_denoising: PSNR = 28.645124522436454, MSE = 88.83168674698796
+INFO:root:best_K: 0.5, best_steps: 5, best_psnr: 28.65743946538725, best_mse: 88.58015060240965
+INFO:PSNR_Results:perona_malik_f1_denoising with K=0.5 and steps=5: Best PSNR = 28.65743946538725, Best MSE = 88.58015060240965
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 28.65499119587519, best_mse: 88.63010040160643
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 28.65499119587519, Best MSE = 88.63010040160643
+INFO:PSNR_Results:wavelet_denoising: PSNR = 18.049475831385376, MSE = 1018.9028516668565
+INFO:PSNR_Results:gaussian_denoising: PSNR = 28.006516381890776, MSE = 102.90316265060241
+INFO:root:best_K: 1, best_steps: 5, best_psnr: 28.014317600263094, best_mse: 102.71848393574297
+INFO:PSNR_Results:perona_malik_f1_denoising with K=1 and steps=5: Best PSNR = 28.014317600263094, Best MSE = 102.71848393574297
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 27.99203645849511, best_mse: 103.24682730923695
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 27.99203645849511, Best MSE = 103.24682730923695
+INFO:PSNR_Results:wavelet_denoising: PSNR = 18.830635520282783, MSE = 851.1709811022963
+INFO:PSNR_Results:gaussian_denoising: PSNR = 28.09419158928501, MSE = 100.84658634538152
+INFO:root:best_K: 1, best_steps: 5, best_psnr: 28.190015264993377, best_mse: 98.64585341365462
+INFO:PSNR_Results:perona_malik_f1_denoising with K=1 and steps=5: Best PSNR = 28.190015264993377, Best MSE = 98.64585341365462
+INFO:root:best_K: 0.01, best_steps: 5, best_psnr: 28.12069840579811, best_mse: 100.23295180722891
+INFO:PSNR_Results:perona_malik_f2_denoising with K=0.01 and steps=5: Best PSNR = 28.12069840579811, Best MSE = 100.23295180722891
+INFO:PSNR_Results:Starting denoising process from main_varying_k.py...
+INFO:PSNR_Results:K = 0.01: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 0.02: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 0.05: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 0.1: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 0.2: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 0.5: psnr_f1 = 41.75568528576835, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 1: psnr_f1 = 32.939294790853275, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 2: psnr_f1 = 30.22062041441576, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 3: psnr_f1 = 28.872590966939544, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:K = 10: psnr_f1 = 27.844902054136547, psnr_f2 = 38.44863805768651
+INFO:PSNR_Results:K = 0.01: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 0.02: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 0.05: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 0.1: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 0.2: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 0.5: psnr_f1 = 40.7863561023974, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 1: psnr_f1 = 32.47961504039397, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 2: psnr_f1 = 30.069274357480058, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 3: psnr_f1 = 29.113140767223122, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:K = 10: psnr_f1 = 27.87857844570286, psnr_f2 = 37.98491933586159
+INFO:PSNR_Results:Starting denoising process from main_varing_delt.py...
+INFO:PSNR_Results:del_t = 0.001: psnr_f1 = 45.50395826860473, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.005: psnr_f1 = 45.48231731873411, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.01: psnr_f1 = 45.28520533472645, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.05: psnr_f1 = 41.24514026007101, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.1: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.2: psnr_f1 = 41.05366572260773, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:del_t = 0.001: psnr_f1 = 44.575984518158435, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:del_t = 0.005: psnr_f1 = 44.51974799459499, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:del_t = 0.01: psnr_f1 = 44.19336060384728, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:del_t = 0.05: psnr_f1 = 40.56755165507327, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:del_t = 0.1: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:del_t = 0.2: psnr_f1 = 41.421018730956774, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:Starting denoising process with varying steps from main.py...
+INFO:PSNR_Results:steps = 5: psnr_f1 = 41.778843737436745, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 10: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 50: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 100: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 150: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 200: psnr_f1 = 41.77496700026165, psnr_f2 = 45.50395826860473
+INFO:PSNR_Results:steps = 5: psnr_f1 = 40.815838288595515, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:steps = 10: psnr_f1 = 40.80870745280775, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:steps = 50: psnr_f1 = 40.806639922226665, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:steps = 100: psnr_f1 = 40.81025874693503, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:steps = 150: psnr_f1 = 40.80974158732125, psnr_f2 = 44.575984518158435
+INFO:PSNR_Results:steps = 200: psnr_f1 = 40.81129325094999, psnr_f2 = 44.575984518158435
