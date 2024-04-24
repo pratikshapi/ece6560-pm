@@ -405,8 +405,8 @@ if __name__ == '__main__':
     create_directory_structure()
     generate_all_noised_images(image_path, noise_funcs, noise_labels, contrast_levels)
 
-    # main()
-    # main_contrast()
+    main()
+    main_contrast()
     main_varying_k()
     main_varing_delt()
     main_varying_steps()
